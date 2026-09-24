@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: marketplace
+    ports:
+      - "5434:5432"  # 5432/5433 taken by other portfolio projects' local Postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6381:6379"  # 6379/6380 taken by other portfolio projects' local Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./api:/app
+    ports:
+      - "8001:8000"  # 8000 taken by another portfolio project's API container locally
+    env_file:
+      - ./api/.env
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/marketplace
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./api
+    command: celery -A config worker -l info
+    volumes:
+      - ./api:/app
+    env_file:
+      - ./api/.env
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/marketplace
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

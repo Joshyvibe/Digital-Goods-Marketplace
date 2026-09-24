@@ -1,0 +1,25 @@
+# Python
+api/.venv/
+__pycache__/
+*.pyc
+api/db.sqlite3
+api/staticfiles/
+
+# Env files (never commit real secrets)
+.env
+api/.env
+web/.env.local
+web/.env*.local
+
+# Node / Next.js
+web/node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
+
+.claude

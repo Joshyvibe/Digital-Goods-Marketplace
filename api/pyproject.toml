@@ -1,0 +1,28 @@
+[project]
+name = "digital-goods-marketplace-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.0,<5.1",
+    "djangorestframework",
+    "djangorestframework-simplejwt",
+    "psycopg2-binary",
+    "celery",
+    "redis",
+    "boto3",
+    "stripe",
+    "google-auth",
+    "django-cors-headers",
+    "django-environ",
+    "gunicorn",
+    "whitenoise",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-django",
+]
+
+[tool.setuptools]
+packages = []
