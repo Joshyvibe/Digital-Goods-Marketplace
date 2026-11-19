@@ -1,12 +1,13 @@
 from django.http import HttpResponse
 
+from config.health import health
+
 
 class HealthCheckMiddleware:
-    """Answers /healthz before host validation and the HTTPS redirect run.
+    """Answers health probes before host validation and the HTTPS redirect run.
 
-    Platform health probes hit the container directly — plain HTTP, no X-Forwarded-Proto, and a
-    Host header (pod IP) that isn't in ALLOWED_HOSTS — so routing them through the normal stack
-    would return a 301 or 400 instead of 200.
+    /healthz: plain liveness for probes that hit the container directly.
+    /api/health: Savannaa's readiness check, with database/Redis/worker status.
     """
 
     def __init__(self, get_response):
@@ -15,4 +16,6 @@ class HealthCheckMiddleware:
     def __call__(self, request):
         if request.path == "/healthz":
             return HttpResponse("ok", content_type="text/plain")
+        if request.path == "/api/health":
+            return health(request)
         return self.get_response(request)
