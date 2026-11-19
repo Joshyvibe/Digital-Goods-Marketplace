@@ -10,8 +10,13 @@ env = environ.Env(
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-dev-only-change-me")
-DEBUG = env.bool("DEBUG", default=True)
+DEBUG = env("DEBUG")
+# Required outside DEBUG — a missing key must fail loudly, not fall back to a public one.
+SECRET_KEY = (
+    env("DJANGO_SECRET_KEY", default="django-insecure-dev-only-change-me")
+    if DEBUG
+    else env("DJANGO_SECRET_KEY")
+)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 # Production hardening, gated on DEBUG so local dev (plain http://localhost) is unaffected.
@@ -19,6 +24,7 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.
 # sees plain HTTP internally — so SECURE_SSL_REDIRECT needs SECURE_PROXY_SSL_HEADER too,
 # or it redirect-loops forever trying to "upgrade" a request that was already HTTPS.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
@@ -51,6 +57,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "config.health.HealthCheckMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",

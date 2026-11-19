@@ -1,0 +1,1 @@
+{"django": "api", "web": "web", "settings": "config.settings", "wsgi": "config.wsgi", "celery": "config"}
